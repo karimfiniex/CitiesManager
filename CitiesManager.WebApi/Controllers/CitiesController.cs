@@ -5,9 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CitiesManager.WebApi.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CitiesController : ControllerBase
+    public class CitiesController : CustomControllerBase
     {
         private readonly ApplicationDbContext _context;
 
@@ -40,7 +38,8 @@ namespace CitiesManager.WebApi.Controllers
 
             if (city == null)
             {
-                return NotFound();
+                return Problem(detail: "Invalid CityID", statusCode: 400, title: "City Search");
+                //return NotFound();
             }
 
             return city;
@@ -48,14 +47,19 @@ namespace CitiesManager.WebApi.Controllers
 
         // PUT: api/Cities/5
         [HttpPut("{cityID}")]
-        public async Task<IActionResult> PutCity(Guid cityID, City city)
+        public async Task<IActionResult> PutCity(Guid cityID, [Bind(nameof(City.CityID), nameof(City.CityName))] City city)
         {
             if (cityID != city.CityID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(city).State = EntityState.Modified;
+            var existingCity = await _context.Cities.FindAsync(cityID);
+            if (existingCity == null)
+            {
+                return NotFound();
+            }
+            existingCity.CityName = city.CityName;
 
             try
             {
@@ -78,7 +82,7 @@ namespace CitiesManager.WebApi.Controllers
 
         // POST: api/Cities
         [HttpPost]
-        public async Task<ActionResult<City>> PostCity(City city)
+        public async Task<ActionResult<City>> PostCity([Bind(nameof(City.CityID), nameof(City.CityName))] City city)
         {
             if (_context.Cities == null)
             {
