@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { City } from "../models/city";
-import { HttpClient } from "@angular/common/http";
-import { Observable, observable } from "rxjs";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { Observable } from "rxjs";
+
+const API_USE_URL: string = "https://localhost:7234/api/";
 @Injectable({
   providedIn: 'root'
 })
@@ -12,6 +14,8 @@ export class CitiesService {
   }
 
   public getCities(): Observable<City[]> {
-    return this.httpClient.get<City[]>("https://localhost:7234/api/cities");
+    let headers = new HttpHeaders();
+    headers = headers.append("Authorization", "Bearer mytoken");
+    return this.httpClient.get<City[]>(`${API_USE_URL}cities`, {headers : headers});
   }
 }
