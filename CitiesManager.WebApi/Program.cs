@@ -11,6 +11,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
 });
 
+//CORS port 4200
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policyBuilder =>
+    {
+        policyBuilder.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>())
+        .WithHeaders("Authorization", "origin", "accept", "content-type")
+        .WithMethods("Get", "Post", "Put", "Delete")
+        ;
+    });
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -26,6 +38,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHsts();
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors();
 
 app.UseAuthorization();
 
