@@ -1,4 +1,4 @@
-using CitiesManager.WebApi.DatabaseContext;
+using CitiesManager.Infrastrucure.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -22,4 +22,9 @@
     <Folder Include="ClientApp\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CitiesManager.Core\CitiesManager.Core.csproj" />
+    <ProjectReference Include="..\CitiesManager.Infrastrucure\CitiesManager.Infrastrucure.csproj" />
+  </ItemGroup>
+
 </Project>
