@@ -23,9 +23,13 @@
             </td>
             <td style="width:200px">
               <button class="button button-blue-back" (click)="editClicked(city)"
-                      *ngIf="city.cityID != editCityID">Edit</button>
+                      *ngIf="city.cityID != editCityID" type="button">Edit</button>
+
               <button class="button button-blue-back" (click)="updateClicked(i)"
-                      *ngIf="city.cityID == editCityID">Update</button>
+                      *ngIf="city.cityID == editCityID" type="submit">Update</button>
+
+              <button class="button button-red-back ml" (click)="deleteClicked(city, i)"
+                      *ngIf="city.cityID != editCityID" type="button">Delete</button>
             </td>
           </tr>
         </tbody>
