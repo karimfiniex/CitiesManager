@@ -1,5 +1,5 @@
-﻿using CitiesManager.WebApi.DatabaseContext;
-using CitiesManager.WebApi.Models;
+﻿using CitiesManager.Core.Models;
+using CitiesManager.Infrastrucure.DatabaseContext;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

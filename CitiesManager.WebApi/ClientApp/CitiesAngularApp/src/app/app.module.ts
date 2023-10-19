@@ -6,11 +6,13 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CitiesComponent } from './cities/cities.component';
+import { DisableControlDirective } from './directives/disable-control.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
-    CitiesComponent
+    CitiesComponent,
+    DisableControlDirective
   ],
   imports: [
     BrowserModule,
