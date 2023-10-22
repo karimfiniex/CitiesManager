@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RegisterUser } from '../models/register-user';
 import { AccountService } from '../services/account.service';
+import { CompareValidation } from '../validators/custom-validators';
 
 @Component({
   selector: 'app-register',
@@ -20,7 +21,11 @@ export class RegisterComponent {
       phoneNumber: new FormControl(null, [Validators.required]),
       password: new FormControl(null, [Validators.required]),
       confirmPassword: new FormControl(null, [Validators.required])
-    });
+    },
+      {
+        validators: [CompareValidation("password", "confirmPassword")]
+      }
+   );
   }
 
   get register_personNameControl(): any {
@@ -46,7 +51,8 @@ export class RegisterComponent {
   registerSubmitted() {
     this.isRegisterFormSubmitted = true;
 
-    this.accountService.postRegister(this.registerForm.value).subscribe({
+    if (this.registerForm.valid) { 
+     this.accountService.postRegister(this.registerForm.value).subscribe({
 
       next: (response: RegisterUser) => {
         console.log(response);
@@ -60,6 +66,7 @@ export class RegisterComponent {
       },
       complete: () => { }
     });
+   }
   }
 }
 

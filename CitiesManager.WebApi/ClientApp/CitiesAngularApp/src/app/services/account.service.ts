@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { RegisterUser } from '../models/register-user';
 
 
-const API_BASE_URL: string = "https://localhost:7234/api/account/";
+const API_BASE_URL: string = "https://localhost:7234/api/Account";
 @Injectable({
   providedIn: 'root'
 })
@@ -14,6 +14,6 @@ export class AccountService {
   }
 
   public postRegister(registerUser: RegisterUser): Observable<RegisterUser> {
-    return this.httpClient.post<RegisterUser>(`${API_BASE_URL}register`, registerUser);
+    return this.httpClient.post<RegisterUser>(`${API_BASE_URL}/register`, registerUser);
   }
 }
