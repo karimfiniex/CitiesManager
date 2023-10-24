@@ -29,6 +29,12 @@ namespace CitiesManager.WebApi.Controllers
             _signInManager = signInManager;
             _roleManager = roleManager;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="registerDTO"></param>
+        /// <returns></returns>
         [HttpPost("register")]
         public async Task<ActionResult<ApplicationUser>> PostRegister(RegisterDTO registerDTO)
         {
@@ -43,7 +49,7 @@ namespace CitiesManager.WebApi.Controllers
             {
                 Email = registerDTO.Email,
                 PhoneNumber = registerDTO.PhoneNumber,
-                UserName = registerDTO.PhoneNumber,
+                UserName = registerDTO.Email,
                 PersonName = registerDTO.PersonName
             };
 
@@ -62,6 +68,11 @@ namespace CitiesManager.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> IsEmailAlreadyRegister(string email)
         {
