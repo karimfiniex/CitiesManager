@@ -15,15 +15,24 @@ export class AccountService {
   constructor(private httpClient: HttpClient) {
   }
 
-  public postRegister(registerUser: RegisterUser): Observable<RegisterUser> {
+  public postRegister(registerUser: RegisterUser): Observable<any> {
     return this.httpClient.post<RegisterUser>(`${API_BASE_URL}register`, registerUser);
   }
 
-  public postLogin(loginUser: LoginUser): Observable<LoginUser> {
-    return this.httpClient.post<LoginUser>(`${API_BASE_URL}login`, loginUser);
+  public postLogin(loginUser: LoginUser): Observable<any> {
+    return this.httpClient.post<any>(`${API_BASE_URL}login`, loginUser);
   }
 
   public getLogout(): Observable<string> {
     return this.httpClient.get<string>(`${API_BASE_URL}logout`);
+  }
+
+  public postGenerateNewToken(): Observable<any> {
+
+    var token = localStorage["token"];
+    var refreshToken = localStorage["refreshToken"];
+
+    return this.httpClient.post<any>(`${API_BASE_URL}generate-new-jwt-token`,
+      { token: token, refreshToken: refreshToken });
   }
 }
