@@ -1,14 +1,32 @@
 using CitiesManager.Core.Identity;
+using CitiesManager.Core.ServiceContracts;
+using CitiesManager.Core.Services;
 using CitiesManager.Infrastrucure.DatabaseContext;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    //Authorization policy
+    var policy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser().Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+});
+
+//builder.Services.AddControllers();
+
+builder.Services.AddTransient<IJwtService, JwtService>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
@@ -44,7 +62,28 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>()
     ;
 
+//Jwt
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+  .AddJwtBearer(options =>
+  {
+      options.TokenValidationParameters = new TokenValidationParameters()
+      {
+          ValidateAudience = true,
+          ValidAudience = builder.Configuration["Jwt:Audience"],
+          ValidateIssuer = true,
+          ValidIssuer = builder.Configuration["Jwt:Issuer"],
+          ValidateLifetime = true,
+          ValidateIssuerSigningKey = true,
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+      };
+  });
+
+builder.Services.AddAuthorization(options => { });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -60,6 +99,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseCors();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

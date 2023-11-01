@@ -1,8 +1,10 @@
 ﻿using CitiesManager.Core.DTO;
 using CitiesManager.Core.Identity;
+using CitiesManager.Core.ServiceContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CitiesManager.WebApi.Controllers
 {
@@ -15,6 +17,7 @@ namespace CitiesManager.WebApi.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly IJwtService _jwtService;
         /// <summary>
         /// 
         /// </summary>
@@ -23,11 +26,13 @@ namespace CitiesManager.WebApi.Controllers
         /// <param name="roleManager"></param>
         public AccountController(UserManager<ApplicationUser> userManager,
                                  SignInManager<ApplicationUser> signInManager,
-                                 RoleManager<ApplicationRole> roleManager)
+                                 RoleManager<ApplicationRole> roleManager,
+                                 IJwtService jwtService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _jwtService = jwtService;
         }
 
         /// <summary>
@@ -59,7 +64,11 @@ namespace CitiesManager.WebApi.Controllers
             {
                 //sign in 
                 await _signInManager.SignInAsync(user, isPersistent: false);
-                return Ok(user);
+                var authenticationResponse = _jwtService.CreateJwtToken(user);
+                user.RefreshToken = authenticationResponse.RefreshToken;
+                user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
+                await _userManager.UpdateAsync(user);
+                return Ok(authenticationResponse);
             }
             else
             {
@@ -102,21 +111,36 @@ namespace CitiesManager.WebApi.Controllers
                 return Problem(errorMessage);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(loginDTO.Email, loginDTO.Password, isPersistent: false, lockoutOnFailure: false);
-
-            if (result.Succeeded)
+            try
             {
-                ApplicationUser? user = await _userManager.FindByEmailAsync(loginDTO.Email);
-                if (user == null)
+                var result = await _signInManager.PasswordSignInAsync(loginDTO.Email, loginDTO.Password, isPersistent: false, lockoutOnFailure: false);
+
+
+
+                if (result.Succeeded)
                 {
-                    return NoContent();
+                    ApplicationUser? user = await _userManager.FindByEmailAsync(loginDTO.Email);
+                    if (user == null)
+                    {
+                        return NoContent();
+                    }
+                    //sign in 
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    var authenticationResponse = _jwtService.CreateJwtToken(user);
+                    user.RefreshToken = authenticationResponse.RefreshToken;
+                    user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
+                    await _userManager.UpdateAsync(user);
+                    return Ok(authenticationResponse);
                 }
-
-                return Ok(new { personName = user.PersonName, email = user.Email });
+                else
+                {
+                    return Problem("Invalid email or password");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return Problem("Invalid email or password");
+                await Console.Out.WriteLineAsync(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -125,6 +149,40 @@ namespace CitiesManager.WebApi.Controllers
         {
             await _signInManager.SignOutAsync();
             return NoContent();
+        }
+
+        [HttpPost("generate-new-jwt-token")]
+        public async Task<IActionResult> GenerateNewAccessToken(TokenModel tokenModel)
+        {
+            if (tokenModel == null)
+            {
+                return BadRequest("Invalid client request");
+            }
+
+
+            ClaimsPrincipal? principal = _jwtService.GetPrincipalFromJwtToken(tokenModel.Token);
+            if (principal == null)
+            {
+                return BadRequest("Invalid jwt access token");
+            }
+
+            string? email = principal.FindFirstValue(ClaimTypes.Email);
+
+            ApplicationUser? user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null || user.RefreshToken != tokenModel.RefreshToken || user.RefreshTokenExpirationDateTime <= DateTime.Now)
+            {
+                return BadRequest("Invalid refresh token");
+            }
+
+            AuthenticationResponse authenticationResponse = _jwtService.CreateJwtToken(user);
+
+            user.RefreshToken = authenticationResponse.RefreshToken;
+            user.RefreshTokenExpirationDateTime = authenticationResponse.RefreshTokenExpirationDateTime;
+
+            await _userManager.UpdateAsync(user);
+            return Ok(authenticationResponse);
+
         }
     }
 }
